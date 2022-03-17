@@ -39,6 +39,21 @@ export default createStore({
       
       context.commit('setUser', responseData);
     },
+    async createUser(_, payload) {
+      const response = await fetch('http://54.202.218.249:9501/api/users/', {
+        method: 'POST',
+        body: JSON.stringify(payload),
+        headers: {
+          'Content-Type': 'application/json'
+        },
+      });
+      const responseData = await response.json();
+      
+      if(!response.ok) {
+        const error = new Error(responseData.message || 'Email already exists!');
+        throw error;
+      }
+    },
     async updateUser(context, payload) {
       const response = await fetch('http://54.202.218.249:9501/api/users/'+payload.userId, {
         method: 'PUT',

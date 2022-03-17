@@ -1,74 +1,88 @@
 <template>
-  <base-dialog
-    v-if="inputIsInvalid"
-    title="Invalid input"
-    @close="confirmError"
-  >
-    <template #default>
-      <p>Please fill in all input fields with valid data.</p>
-    </template>
-    <template #actions>
-      <base-button @click="confirmError">Okay</base-button>
-    </template>
-  </base-dialog>
-  <base-container>
-    <div class="flex">
-      <h1>User Details</h1>
+  <div>
+    <base-dialog
+      v-if="inputIsInvalid"
+      title="Invalid input"
+      @close="confirmError"
+    >
+      <template #default>
+        <p>Please fill in all input fields with valid data.</p>
+      </template>
+      <template #actions>
+        <base-button @click="confirmError" title="Okay"></base-button>
+      </template>
+    </base-dialog>
+    <base-container>
       <div class="flex">
-        <base-button @click="editTrigger()" :title="activeTitle"></base-button>
-        <button class="delete" @click="deleteItem()">
-          <i class="gg-trash"></i>
-        </button>
+        <h1>User Details</h1>
+        <div class="flex">
+          <base-button
+            @click="editTrigger()"
+            :title="activeTitle"
+          ></base-button>
+          <button class="delete" @click="deleteItem">
+            <i class="gg-trash"></i>
+          </button>
+        </div>
       </div>
-    </div>
-    <form v-if="loadedUser" @submit.prevent="submit">
-      <div class="row">
-        <label>Firstname:</label>
-        <input type="text" v-model="firstName" :disabled="!editMode" />
-      </div>
-      <div class="row">
-        <label>Lastname:</label>
-        <input type="text" v-model="lastName" :disabled="!editMode" />
-      </div>
-      <div class="row">
-        <label>E-mail:</label>
-        <input type="text" v-model="email" :disabled="!editMode" />
-      </div>
-      <div class="row">
-        <label>Qualification:</label>
-        <input type="text" v-model="qualification" :disabled="!editMode" />
-      </div>
-      <div class="row">
-        <label>Phone Number:</label>
-        <input type="text" v-model="phoneNumber" :disabled="!editMode" />
-      </div>
-      <div class="row">
-        <label>Address Line 1:</label>
-        <input v-model="address1" :disabled="!editMode" />
-      </div>
-      <div class="row">
-        <label>Address Line 2:</label>
-        <input v-model="address2" :disabled="!editMode" />
-      </div>
-      <div class="row">
-        <label>City:</label>
-        <input type="text" v-model="city" :disabled="!editMode" />
-      </div>
-      <div class="row">
-        <label>State:</label>
-        <input type="text" v-model="state" :disabled="!editMode" />
-      </div>
-      <div class="row">
-        <label>ZipCode:</label>
-        <input type="text" v-model="zipCode" :disabled="!editMode" />
-      </div>
-      <div class="row">
-        <label>Comments:</label>
-        <input type="text" v-model="comments" :disabled="!editMode" />
-      </div>
-      <base-button v-if="editMode" class="center" title="Submit"></base-button>
-    </form>
-  </base-container>
+      <form v-if="loadedUser" @submit.prevent="submit">
+        <div class="row">
+          <label>Firstname:</label>
+          <input type="text" v-model="firstName" :disabled="!editMode" />
+        </div>
+        <div class="row">
+          <label>Lastname:</label>
+          <input type="text" v-model="lastName" :disabled="!editMode" />
+        </div>
+        <div class="row">
+          <label>E-mail:</label>
+          <input type="email" v-model="email" :disabled="!editMode" />
+        </div>
+        <div class="row">
+          <label>Qualification:</label>
+          <input type="text" v-model="qualification" :disabled="!editMode" />
+        </div>
+        <div class="row">
+          <label>Phone Number:</label>
+          <input
+            type="tel"
+            v-model.number="phoneNumber"
+            @keypress="isNumber($event)"
+            :disabled="!editMode"
+          />
+        </div>
+        <div class="row">
+          <label>Address Line 1:</label>
+          <input v-model="address1" :disabled="!editMode" />
+        </div>
+        <div class="row">
+          <label>Address Line 2:</label>
+          <input v-model="address2" :disabled="!editMode" />
+        </div>
+        <div class="row">
+          <label>City:</label>
+          <input type="text" v-model="city" :disabled="!editMode" />
+        </div>
+        <div class="row">
+          <label>State:</label>
+          <input type="text" v-model="state" :disabled="!editMode" />
+        </div>
+        <div class="row">
+          <label>ZipCode:</label>
+          <input type="text" v-model="zipCode" :disabled="!editMode" />
+        </div>
+        <div class="row">
+          <label>Comments:</label>
+          <input type="text" v-model="comments" :disabled="!editMode" />
+        </div>
+        <base-button
+          v-if="editMode"
+          class="center"
+          title="Submit"
+        ></base-button>
+      </form>
+    </base-container>
+  </div>
 </template>
 
 <script>
@@ -92,6 +106,7 @@ export default {
       zipCode: "",
       qualification: "",
       comments: "",
+      inputIsInvalid: false,
     };
   },
   created() {
@@ -103,6 +118,7 @@ export default {
       try {
         await this.$store.dispatch("fetchUser", this.userId);
       } catch (error) {
+        this.$toast.error("Failed to load record!");
         this.error = error.message || "Failed to fetch user";
       }
       this.isLoading = false;
@@ -127,6 +143,23 @@ export default {
       }
     },
     async submit() {
+      if (
+        this.firstName.trim() === "" ||
+        this.lastName.trim() === "" ||
+        this.email.trim() === "" ||
+        this.phoneNumber.trim() === "" ||
+        this.address1.trim() === "" ||
+        this.address2.trim() === "" ||
+        this.city.trim() === "" ||
+        this.state.trim() === "" ||
+        this.zipCode.trim() === "" ||
+        this.qualification.trim() === "" ||
+        this.comments.trim() === ""
+      ) {
+        this.inputIsInvalid = true;
+        return;
+      }
+
       let formData = {
         data: {
           firstName: this.firstName,
@@ -145,17 +178,45 @@ export default {
       };
       try {
         await this.$store.dispatch("updateUser", formData);
-        this.$router.push("/users");
+        this.$toast.success("User updated!");
+        setTimeout(() => {
+          this.$router.push("/users");
+        }, 100);
       } catch (error) {
         this.error = error.message || "Failed to fetch user";
+        this.$toast.error(this.error);
       }
     },
     async deleteItem() {
       try {
         await this.$store.dispatch("deleteUser", this.userId);
-        this.$router.push("/users");
       } catch (error) {
         this.error = error.message || "Failed to delete user";
+      }
+      this.$router.push("/users");
+      this.$toast.success("User Deleted!");
+    },
+    confirmError() {
+      this.inputIsInvalid = false;
+    },
+    isNumber(evt) {
+      const keysAllowed = [
+        "0",
+        "1",
+        "2",
+        "3",
+        "4",
+        "5",
+        "6",
+        "7",
+        "8",
+        "9",
+        ".",
+      ];
+      const keyPressed = evt.key;
+
+      if (!keysAllowed.includes(keyPressed)) {
+        evt.preventDefault();
       }
     },
   },

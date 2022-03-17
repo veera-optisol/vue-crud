@@ -31,7 +31,7 @@ export default {
       search: "",
     };
   },
-  created() {
+  mounted() {
     this.loadUsers();
   },
   methods: {
